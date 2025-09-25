@@ -2036,6 +2036,26 @@ void RosFilter<T>::periodicUpdate()
     return;
   }
 
+  Eigen::MatrixXd process_noise_covariance(STATE_SIZE, STATE_SIZE);
+  process_noise_covariance.setZero();
+  std::vector<double> process_noise_covar_flat;
+
+  if (this->get_parameter(
+      "process_noise_covariance",
+      process_noise_covar_flat))
+  {
+    assert(process_noise_covar_flat.size() == STATE_SIZE * STATE_SIZE);
+
+    for (int i = 0; i < STATE_SIZE; i++) {
+      for (int j = 0; j < STATE_SIZE; j++) {
+        process_noise_covariance(i, j) =
+          process_noise_covar_flat[i * STATE_SIZE + j];
+      }
+    }
+
+    filter_.setProcessNoiseCovariance(process_noise_covariance);
+  }
+
   rclcpp::Time cur_time = this->now();
 
   if (toggled_on_) {
